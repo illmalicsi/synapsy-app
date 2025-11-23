@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppState, QuizQuestion, QuizResult, QuizMode, QuizSettings, UserProfile, QuizHistoryItem } from './types';
 import { InputView } from './components/InputView';
@@ -170,9 +171,9 @@ export default function App() {
 
       <div className="relative z-10 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto h-screen flex flex-col md:h-auto md:min-h-screen md:py-8 lg:py-10 transition-all duration-300">
         
-        {/* Header - Only show when logged in */}
+        {/* Header - Only show when logged in - Increased z-index to 100 for dropdown visibility */}
         {appState !== AppState.AUTH && user && (
-            <div className="px-5 py-4 md:mb-2 flex items-center justify-between animate-in slide-up">
+            <div className="px-5 py-4 md:mb-2 flex items-center justify-between animate-in slide-up relative z-[100]">
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-center text-[#4285F4] transition-colors group">
                     <BrainCircuit size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
@@ -235,8 +236,12 @@ export default function App() {
              <AuthView onLogin={handleLogin} onRegister={handleRegister} error={error} />
           )}
 
-          {appState === AppState.INPUT && user && (
-            <InputView onGenerate={handleGenerate} isGenerating={appState === AppState.LOADING} userName={user.name} />
+          {(appState === AppState.INPUT || appState === AppState.LOADING) && user && (
+            <InputView 
+              onGenerate={handleGenerate} 
+              isGenerating={appState === AppState.LOADING} 
+              userName={user.name.split(' ')[0]} // Pass first name only
+            />
           )}
 
           {appState === AppState.QUIZ && (

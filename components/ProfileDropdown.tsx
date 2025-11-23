@@ -45,7 +45,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-600" 
         />
         <span className="text-sm font-bold text-slate-600 dark:text-slate-200 max-w-[100px] truncate">
-          {user.name}
+          {user.name.split(' ')[0]}
         </span>
         <ChevronDown size={14} className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>

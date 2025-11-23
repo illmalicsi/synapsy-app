@@ -1,6 +1,7 @@
+
 import React, { useState, useRef } from 'react';
 import { Button } from './Button';
-import { Camera, X, Sparkles, Shuffle, ListChecks, CheckSquare, Type, Dice5, FileText, Image as ImageIcon, Settings as SettingsIcon, SlidersHorizontal, BrainCircuit } from 'lucide-react';
+import { Camera, X, Sparkles, Shuffle, ListChecks, CheckSquare, Type, Dice5, FileText, Image as ImageIcon, Settings as SettingsIcon, SlidersHorizontal, BrainCircuit, ScanSearch, CheckCircle2 } from 'lucide-react';
 import { QuizMode, QuizSettings, QuestionType } from '../types';
 import { SettingsModal } from './SettingsModal';
 
@@ -59,12 +60,12 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
     setText(`Generate a quiz about: ${randomTopic}`);
   };
 
-  const quizModes: { id: QuizMode; label: string; icon: React.ReactNode; color: string; bg: string; border: string }[] = [
-    { id: 'MIXED', label: 'Mixed', icon: <Shuffle size={20} />, color: 'text-[#FBBC05]', bg: 'bg-[#FBBC05]/10', border: 'border-[#FBBC05]/30' },
-    { id: 'CONCEPTUAL', label: 'Deep Work', icon: <BrainCircuit size={20} />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
-    { id: 'MULTIPLE_CHOICE', label: 'Choices', icon: <ListChecks size={20} />, color: 'text-[#4285F4]', bg: 'bg-[#4285F4]/10', border: 'border-[#4285F4]/30' },
-    { id: 'TRUE_FALSE', label: 'True/False', icon: <CheckSquare size={20} />, color: 'text-[#34A853]', bg: 'bg-[#34A853]/10', border: 'border-[#34A853]/30' },
-    { id: 'SHORT_ANSWER', label: 'Short', icon: <Type size={20} />, color: 'text-[#EA4335]', bg: 'bg-[#EA4335]/10', border: 'border-[#EA4335]/30' },
+  const quizModes: { id: QuizMode; label: string; sub: string; icon: React.ReactNode; color: string; bg: string; }[] = [
+    { id: 'MIXED', label: 'Mixed', sub: 'Best variety', icon: <Shuffle size={20} />, color: 'text-[#FBBC05]', bg: 'bg-[#FBBC05]' },
+    { id: 'CONCEPTUAL', label: 'Deep Work', sub: 'Match & Order', icon: <BrainCircuit size={20} />, color: 'text-purple-500', bg: 'bg-purple-500' },
+    { id: 'MULTIPLE_CHOICE', label: 'Choices', sub: 'Standard MC', icon: <ListChecks size={20} />, color: 'text-[#4285F4]', bg: 'bg-[#4285F4]' },
+    { id: 'TRUE_FALSE', label: 'True/False', sub: 'Quick check', icon: <CheckSquare size={20} />, color: 'text-[#34A853]', bg: 'bg-[#34A853]' },
+    { id: 'SHORT_ANSWER', label: 'Short', sub: 'Type answers', icon: <Type size={20} />, color: 'text-[#EA4335]', bg: 'bg-[#EA4335]' },
   ];
 
   return (
@@ -79,20 +80,20 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
         quizMode={quizMode}
       />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-8 pb-32">
+      <div className="flex-1 overflow-y-auto no-scrollbar p-5 md:p-8">
         
         {/* Welcome / Surprise Banner */}
         <div 
             onClick={handleSurpriseMe}
-            className="group cursor-pointer relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-violet-600 to-indigo-600 p-6 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30 mb-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98]"
+            className="group cursor-pointer relative overflow-hidden rounded-[1.5rem] bg-gradient-to-r from-violet-600 to-indigo-600 p-5 md:p-6 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30 mb-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98]"
         >
-            <div className="relative z-10 flex items-center justify-between">
+            <div className="relative z-10 flex items-center justify-between gap-3">
                 <div>
-                    <h2 className="text-xl font-bold mb-1">Ready to learn, {userName}?</h2>
-                    <p className="text-indigo-100 text-sm font-medium">Tap here for a surprise topic.</p>
+                    <h2 className="text-lg md:text-xl font-bold mb-1 leading-tight">Ready to learn, {userName}?</h2>
+                    <p className="text-indigo-100 text-xs md:text-sm font-medium">Tap here for a surprise topic.</p>
                 </div>
-                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm group-hover:bg-white/30 transition-colors">
-                    <Dice5 size={24} className="text-white group-hover:rotate-180 transition-transform duration-500" />
+                <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm group-hover:bg-white/30 transition-colors shrink-0">
+                    <Dice5 size={22} className="text-white group-hover:rotate-180 transition-transform duration-500" />
                 </div>
             </div>
             <div className="absolute -right-4 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
@@ -102,12 +103,12 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
         <section className="mb-8">
             <div className="flex items-center justify-between mb-3 px-1">
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Source Material</span>
-                {images.length > 0 && <span className="text-[10px] font-bold text-[#34A853] bg-[#34A853]/10 px-2 py-0.5 rounded-md animate-in scale-in">{images.length} images attached</span>}
+                {images.length > 0 && <span className="text-[10px] font-bold text-[#34A853] bg-[#34A853]/10 px-2 py-0.5 rounded-md animate-in scale-in">{images.length} attached</span>}
             </div>
             
-            <div className="bg-slate-50 dark:bg-slate-900 p-1.5 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 focus-within:ring-2 focus-within:ring-[#4285F4]/50 focus-within:border-[#4285F4] transition-all hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md">
+            <div className="bg-slate-50 dark:bg-slate-900 p-1.5 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 focus-within:ring-2 focus-within:ring-[#4285F4]/50 focus-within:border-[#4285F4] transition-all hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md group">
                 <textarea
-                    className="w-full h-32 p-4 bg-transparent text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none outline-none text-base font-medium rounded-2xl"
+                    className="w-full h-28 md:h-32 p-4 bg-transparent text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none outline-none text-base font-medium rounded-2xl leading-relaxed"
                     placeholder="Paste notes, topics, or text here..."
                     value={text}
                     onChange={(e) => setText(e.target.value)}
@@ -157,51 +158,53 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
             </div>
         </section>
 
-        {/* Controls */}
-        <section>
+        {/* Quiz Mode Selector - Redesigned */}
+        <section className="mb-6">
              <div className="flex items-center justify-between mb-4 px-1">
-               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Config</span>
+               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Quiz Mode</span>
                <button 
                 onClick={() => setIsSettingsOpen(true)}
                 className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors uppercase tracking-wider"
                >
                    <SlidersHorizontal size={12} />
-                   <span>Advanced</span>
+                   <span>Config</span>
                </button>
              </div>
 
-             <div className="grid grid-cols-2 gap-3 mb-6">
-                 {/* Special Large Card for Mixed Mode or Primary modes */}
-                {quizModes.map((mode, idx) => (
-                    <button
-                        key={mode.id}
-                        onClick={() => setQuizMode(mode.id)}
-                        className={`relative p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98] ${
-                            mode.id === 'CONCEPTUAL' ? 'col-span-2 md:col-span-1' : '' 
-                        } ${
-                            quizMode === mode.id 
-                            ? `bg-white dark:bg-slate-800 ${mode.border} shadow-lg shadow-gray-100 dark:shadow-none scale-[1.02] ring-1 ring-inset ${mode.color.replace('text-', 'ring-')}` 
-                            : 'bg-slate-50 dark:bg-slate-900 border-transparent text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-[1.01]'
-                        }`}
-                        style={{ animationDelay: `${idx * 100}ms` }}
-                    >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 transition-transform duration-300 ${quizMode === mode.id ? 'scale-110' : ''} ${mode.bg} ${mode.color}`}>
-                            {mode.icon}
-                        </div>
-                        <div className={`text-sm font-bold ${quizMode === mode.id ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-500'}`}>
-                            {mode.label}
-                        </div>
-                        {mode.id === 'CONCEPTUAL' && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-1 leading-tight">Matching, Ordering & Logic</span>
-                        )}
-                        {quizMode === mode.id && (
-                            <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${mode.bg.replace('/10', '')} animate-pulse`}></div>
-                        )}
-                    </button>
-                ))}
+             {/* Even scrolling list for mobile, grid for desktop */}
+             <div className="flex overflow-x-auto pb-4 gap-3 -mx-5 px-5 md:mx-0 md:px-0 md:grid md:grid-cols-5 md:overflow-visible md:pb-0 no-scrollbar snap-x snap-mandatory">
+                {quizModes.map((mode, idx) => {
+                    const isActive = quizMode === mode.id;
+                    return (
+                        <button
+                            key={mode.id}
+                            onClick={() => setQuizMode(mode.id)}
+                            className={`snap-center flex-shrink-0 min-w-[120px] md:min-w-0 flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 relative group
+                            ${isActive 
+                                ? 'bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-900 shadow-xl shadow-indigo-100 dark:shadow-none scale-100 ring-2 ring-indigo-500/20' 
+                                : 'bg-slate-50 dark:bg-slate-900 border-transparent text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                        >
+                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-transform duration-300 ${isActive ? 'scale-110 shadow-sm' : 'grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100'} ${mode.bg}/10 ${mode.color}`}>
+                                {mode.icon}
+                            </div>
+                            <div className={`text-sm font-bold mb-0.5 ${isActive ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-500'}`}>
+                                {mode.label}
+                            </div>
+                            <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-600">
+                                {mode.sub}
+                            </div>
+                            {isActive && (
+                                <div className="absolute top-3 right-3">
+                                    <span className={`flex w-2 h-2 rounded-full ${mode.bg}`}></span>
+                                </div>
+                            )}
+                        </button>
+                    );
+                })}
              </div>
 
-             <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+             <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 transition-colors mt-2 md:mt-4">
                 <div className="flex justify-between items-center mb-4">
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Question Count</span>
                     <span className="text-lg font-black text-[#4285F4]">{questionCount}</span>
@@ -221,21 +224,22 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
                 </div>
              </div>
         </section>
-      </div>
 
-      {/* Footer Action */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-700 z-10 transition-colors">
-        <Button 
-          fullWidth 
-          size="lg" 
-          onClick={handleGenerate}
-          isLoading={isGenerating}
-          disabled={!text.trim() && images.length === 0}
-          className={`bg-[#4285F4] hover:bg-[#3367d6] text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/20 py-4 text-lg font-bold rounded-2xl transition-all active:scale-[0.98] ${isGenerating ? 'animate-pulse' : ''}`}
-          icon={<Sparkles size={18} className="text-blue-200" />}
-        >
-          {isGenerating ? 'Analyzing Material...' : 'Generate Quiz'}
-        </Button>
+        {/* Action Button */}
+        <section className="mt-4 pb-6">
+            <Button 
+                fullWidth 
+                size="lg" 
+                onClick={handleGenerate}
+                isLoading={isGenerating}
+                disabled={!text.trim() && images.length === 0}
+                className={`bg-[#4285F4] hover:bg-[#3367d6] text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/20 py-4 text-lg font-bold rounded-2xl transition-all active:scale-[0.98] ${isGenerating ? 'animate-pulse' : ''}`}
+                icon={<Sparkles size={18} className="text-blue-200" />}
+            >
+                {isGenerating ? 'Analyzing Material...' : 'Generate Quiz'}
+            </Button>
+        </section>
+
       </div>
     </div>
   );

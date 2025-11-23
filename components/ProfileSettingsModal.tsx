@@ -33,7 +33,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   };
 
   const handleSave = () => {
-    onUpdateUser({ name, avatarSeed });
+    onUpdateUser({ ...user, name, avatarSeed });
     onClose();
   };
 

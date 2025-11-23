@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QuizQuestion, QuizResult, QuestionType } from '../types';
 import { Button } from './Button';
-import { CheckCircle2, XCircle, ArrowRight, Lightbulb, BookOpen, Baby, CheckSquare, ListChecks, Type, X, Clock, AlertTriangle, ArrowUpDown, GripVertical, Split, Youtube } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Lightbulb, BookOpen, Baby, CheckSquare, ListChecks, Type, X, Clock, AlertTriangle, ArrowUpDown, Split, Youtube, GripVertical, Link2, ChevronUp, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface QuizViewProps {
@@ -55,7 +55,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
   
   // Timer state
   const [timeLeft, setTimeLeft] = useState(timeLimit);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isTimeUp, setIsTimeUp] = useState(false);
 
   // New States for Advanced Types
@@ -91,7 +91,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
 
     // Initialize Ordering
     if (currentQuestion?.type === QuestionType.ORDERING && currentQuestion.orderingItems) {
-        // Shuffle items for initial state
         const shuffled = [...currentQuestion.orderingItems].sort(() => Math.random() - 0.5);
         setOrderingState(shuffled);
     }
@@ -135,12 +134,10 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     } else if (isShortAnswer) {
       correct = checkShortAnswer(shortAnswerText, currentQuestion.correctAnswer);
     } else if (isOrdering) {
-        // Compare current order with correct order
         const currentString = JSON.stringify(orderingState);
         const correctString = JSON.stringify(currentQuestion.orderingItems);
         correct = currentString === correctString;
     } else if (isMatching) {
-        // Check if all matches are correct
         if (!currentQuestion.matchingPairs) {
             correct = false;
         } else {
@@ -151,7 +148,8 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
             correct = allMatched && allAssigned;
         }
     } else {
-      correct = selectedOption === currentQuestion.correctAnswer;
+      // Comparison with trim for safety
+      correct = selectedOption?.trim() === currentQuestion.correctAnswer?.trim();
     }
     
     setIsCurrentCorrect(correct);
@@ -185,7 +183,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     }
   };
 
-  // Helper for Ordering UI
   const moveItem = (index: number, direction: 'up' | 'down') => {
     if (isAnswerRevealed) return;
     const newOrder = [...orderingState];
@@ -197,27 +194,26 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     setOrderingState(newOrder);
   };
 
-  // Helper for Matching UI
   const handleMatchClick = (side: 'left' | 'right', value: string) => {
     if (isAnswerRevealed) return;
 
     if (side === 'left') {
-        // If already matched, unmatch
         if (matchingState.matches[value]) {
+            // Deselect/Unmatch
             const newMatches = { ...matchingState.matches };
             delete newMatches[value];
             setMatchingState(prev => ({ ...prev, matches: newMatches, selectedLeft: value }));
         } else {
+            // Select new left
             setMatchingState(prev => ({ ...prev, selectedLeft: value }));
         }
     } else {
-        // Right side clicked
+        // Clicking right side
         if (matchingState.selectedLeft) {
-            // Check if this right value is already matched to another left
+            // Check if this right value is already used by another left
             const existingLeft = Object.keys(matchingState.matches).find(key => matchingState.matches[key] === value);
-            
             const newMatches = { ...matchingState.matches };
-            if (existingLeft) delete newMatches[existingLeft]; // Steal match logic
+            if (existingLeft) delete newMatches[existingLeft]; 
             
             newMatches[matchingState.selectedLeft] = value;
             setMatchingState(prev => ({ ...prev, matches: newMatches, selectedLeft: null }));
@@ -229,7 +225,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     if (questions.length > 20) {
         const progress = ((currentIndex + 1) / questions.length) * 100;
         return (
-            <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner mt-3">
+            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner mt-3">
                 <div 
                     className="h-full bg-gradient-to-r from-[#4285F4] to-[#34A853] transition-all duration-500 ease-out" 
                     style={{ width: `${progress}%` }}
@@ -239,11 +235,10 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     }
 
     return (
-        <div className="flex gap-1.5 w-full mt-3">
+        <div className="flex gap-1 md:gap-1.5 w-full mt-3">
             {questions.map((_, idx) => {
                 const isActive = idx === currentIndex;
                 const isCompleted = idx < currentIndex;
-                
                 let bgClass = "bg-slate-100 dark:bg-slate-700";
                 if (isCompleted) bgClass = "bg-[#34A853]";
                 if (isActive) bgClass = "bg-[#4285F4]";
@@ -274,14 +269,13 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 relative transition-colors duration-300">
       
       {/* Compact Top Bar */}
-      <div className="bg-white dark:bg-slate-800 px-4 py-3 shadow-sm z-20 border-b border-slate-100 dark:border-slate-700 transition-colors">
+      <div className="bg-white dark:bg-slate-800 px-4 py-3 shadow-sm z-20 border-b border-slate-100 dark:border-slate-700 transition-colors shrink-0">
         <div className="flex justify-between items-center">
              <button onClick={onExit} className="p-1.5 -ml-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center gap-1 group">
                 <X size={18} className="group-hover:scale-110 transition-transform"/>
                 <span className="text-xs font-bold">Exit</span>
              </button>
              
-             {/* Timer or Counter */}
              {timeLimit > 0 ? (
                 <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold tabular-nums transition-colors text-xs ${
                     timeLeft <= 10 
@@ -305,7 +299,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
       <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-32">
         
         {/* Compact Question Card */}
-        <div className={`bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-4 transition-all duration-300 ${isShaking ? 'animate-shake ring-2 ring-red-200 dark:ring-red-900' : ''}`}>
+        <div className={`bg-white dark:bg-slate-800 p-4 md:p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-4 transition-all duration-300 ${isShaking ? 'animate-shake ring-2 ring-red-200 dark:ring-red-900' : ''}`}>
            <div className="flex items-center gap-2 mb-2">
               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide
                 ${currentQuestion.type === 'MULTIPLE_CHOICE' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 
@@ -319,47 +313,59 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
               </span>
            </div>
            
-           {/* Scrollable text area for long questions */}
-           <div className="max-h-[35vh] overflow-y-auto custom-scrollbar pr-1">
+           <div className="max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
                <h2 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100 leading-snug">
                  {currentQuestion.question}
                </h2>
            </div>
         </div>
 
-        {/* Answer Section - Compact Spacing */}
+        {/* Answer Section */}
         <div className="space-y-2.5">
             
-            {/* 1. Ordering UI */}
+            {/* ORDERING UI */}
             {isOrdering && (
-                <div className="space-y-2">
+                <div className="space-y-3 mt-4">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mb-2">Use arrows to arrange in order</p>
                     {orderingState.map((item, idx) => {
-                        // Check if this item is in correct position (only reveal after submit)
                         const isCorrectPos = isAnswerRevealed && item === currentQuestion.orderingItems?.[idx];
-                        const borderColor = isAnswerRevealed ? (isCorrectPos ? 'border-[#34A853]' : 'border-[#EA4335]') : 'border-slate-200 dark:border-slate-700';
-                        const bgColor = isAnswerRevealed ? (isCorrectPos ? 'bg-[#34A853]/10' : 'bg-[#EA4335]/10') : 'bg-white dark:bg-slate-800';
+                        let borderColor = "border-slate-200 dark:border-slate-700";
+                        let bgColor = "bg-white dark:bg-slate-800";
+                        let rankColor = "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400";
+                        
+                        if (isAnswerRevealed) {
+                            borderColor = isCorrectPos ? "border-[#34A853]" : "border-[#EA4335]";
+                            bgColor = isCorrectPos ? "bg-[#34A853]/5 dark:bg-[#34A853]/10" : "bg-[#EA4335]/5 dark:bg-[#EA4335]/10";
+                            rankColor = isCorrectPos ? "bg-[#34A853] text-white" : "bg-[#EA4335] text-white";
+                        }
 
                         return (
-                            <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${borderColor} ${bgColor}`}>
-                                <div className="flex flex-col gap-1 text-slate-400">
+                            <div key={idx} className={`relative flex items-center gap-3 p-3 md:p-4 rounded-2xl border-2 transition-all shadow-sm ${borderColor} ${bgColor}`}>
+                                {/* Rank */}
+                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black transition-colors ${rankColor}`}>
+                                    {idx + 1}
+                                </div>
+                                
+                                {/* Content */}
+                                <div className="flex-1 font-bold text-slate-700 dark:text-slate-200 text-sm md:text-base leading-snug">
+                                    {item}
+                                </div>
+
+                                {/* Controls */}
+                                <div className="flex flex-col gap-1.5 ml-1">
                                     <button 
                                         disabled={isAnswerRevealed || idx === 0}
                                         onClick={() => moveItem(idx, 'up')} 
-                                        className="hover:text-[#4285F4] disabled:opacity-30 p-0.5"
+                                        className="p-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-[#4285F4] hover:text-white disabled:opacity-20 disabled:hover:bg-slate-100 disabled:hover:text-slate-500 transition-colors"
                                     >
-                                        <ArrowUpDown size={14} className="rotate-180"/> {/* Up arrow visual */}
+                                        <ChevronUp size={16} strokeWidth={3}/>
                                     </button>
-                                </div>
-                                <div className="flex-1 font-medium text-sm text-slate-700 dark:text-slate-200">
-                                    {item}
-                                </div>
-                                <div className="flex flex-col gap-1 text-slate-400">
                                     <button 
                                         disabled={isAnswerRevealed || idx === orderingState.length - 1}
                                         onClick={() => moveItem(idx, 'down')} 
-                                        className="hover:text-[#4285F4] disabled:opacity-30 p-0.5"
+                                        className="p-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-[#4285F4] hover:text-white disabled:opacity-20 disabled:hover:bg-slate-100 disabled:hover:text-slate-500 transition-colors"
                                     >
-                                        <ArrowUpDown size={14} /> {/* Down arrow visual */}
+                                        <ChevronDown size={16} strokeWidth={3} />
                                     </button>
                                 </div>
                             </div>
@@ -368,71 +374,90 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                 </div>
             )}
 
-            {/* 2. Matching UI */}
+            {/* MATCHING UI */}
             {isMatching && currentQuestion.matchingPairs && (
-                <div className="grid grid-cols-2 gap-3">
-                    {/* Left Column */}
-                    <div className="space-y-2">
-                        {currentQuestion.matchingPairs.map((pair, idx) => {
-                            const isSelected = matchingState.selectedLeft === pair.left;
-                            const isMatched = !!matchingState.matches[pair.left];
-                            
-                            let baseStyle = "p-2.5 rounded-xl border-2 text-xs font-medium w-full text-left transition-all h-full flex items-center min-h-[50px]";
-                            if (isAnswerRevealed) {
-                                // Correct match logic visualization
-                                const matchedRight = matchingState.matches[pair.left];
-                                const isCorrect = matchedRight === pair.right;
-                                baseStyle += isCorrect 
-                                    ? " border-[#34A853] bg-[#34A853]/10 text-[#34A853]" 
-                                    : " border-[#EA4335] bg-[#EA4335]/10 text-[#EA4335]";
-                            } else {
-                                if (isSelected) baseStyle += " border-[#4285F4] bg-[#4285F4]/10 text-[#4285F4]";
-                                else if (isMatched) baseStyle += " border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400";
-                                else baseStyle += " border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#4285F4]";
-                            }
+                <div className="mt-4">
+                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mb-4">Tap a left item, then its match</p>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
+                        {/* Terms Column */}
+                        <div className="space-y-3">
+                            <span className="block text-xs font-bold text-slate-400 dark:text-slate-500 text-center uppercase mb-1">Terms</span>
+                            {currentQuestion.matchingPairs.map((pair, idx) => {
+                                const isSelected = matchingState.selectedLeft === pair.left;
+                                const isMatched = !!matchingState.matches[pair.left];
+                                
+                                let containerClass = "relative w-full p-3 md:p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between min-h-[64px] group ";
+                                
+                                if (isAnswerRevealed) {
+                                    const matchedRight = matchingState.matches[pair.left];
+                                    const isCorrect = matchedRight === pair.right;
+                                    containerClass += isCorrect 
+                                        ? "border-[#34A853] bg-[#34A853]/10 text-[#34A853]" 
+                                        : "border-[#EA4335] bg-[#EA4335]/10 text-[#EA4335]";
+                                } else {
+                                    if (isSelected) {
+                                        containerClass += "border-[#4285F4] bg-[#4285F4] text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105 z-10 ring-2 ring-offset-2 ring-[#4285F4]";
+                                    } else if (isMatched) {
+                                        containerClass += "border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400";
+                                    } else {
+                                        containerClass += "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-[#4285F4]/50 hover:bg-slate-50 dark:hover:bg-slate-700";
+                                    }
+                                }
 
-                            return (
-                                <button key={idx} onClick={() => handleMatchClick('left', pair.left)} disabled={isAnswerRevealed} className={baseStyle}>
-                                    {pair.left}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {/* Right Column */}
-                    <div className="space-y-2">
-                        {matchingState.shuffledRight.map((item, idx) => {
-                             // Find which left key is matched to this item
-                             const matchedLeftKey = Object.keys(matchingState.matches).find(k => matchingState.matches[k] === item);
-                             const isMatched = !!matchedLeftKey;
-
-                             let baseStyle = "p-2.5 rounded-xl border-2 text-xs font-medium w-full text-left transition-all h-full flex items-center min-h-[50px]";
-                             if (isAnswerRevealed) {
-                                 // We need to find if the left key connected to this item matches the correct pair
-                                 if (matchedLeftKey) {
-                                     const correctRight = currentQuestion.matchingPairs?.find(p => p.left === matchedLeftKey)?.right;
-                                     const isCorrect = correctRight === item;
-                                     baseStyle += isCorrect 
-                                        ? " border-[#34A853] bg-[#34A853]/10 text-[#34A853]" 
-                                        : " border-[#EA4335] bg-[#EA4335]/10 text-[#EA4335]";
+                                return (
+                                    <button key={idx} onClick={() => handleMatchClick('left', pair.left)} disabled={isAnswerRevealed} className={containerClass}>
+                                        <span className="text-xs md:text-sm font-bold leading-tight">{pair.left}</span>
+                                        {isMatched && !isSelected && <Link2 size={14} className="opacity-50 shrink-0 ml-2"/>}
+                                        {isSelected && <div className="w-2 h-2 bg-white rounded-full animate-pulse ml-2"></div>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Definitions Column */}
+                        <div className="space-y-3">
+                            <span className="block text-xs font-bold text-slate-400 dark:text-slate-500 text-center uppercase mb-1">Definitions</span>
+                            {matchingState.shuffledRight.map((item, idx) => {
+                                 const matchedLeftKey = Object.keys(matchingState.matches).find(k => matchingState.matches[k] === item);
+                                 const isMatched = !!matchedLeftKey;
+                                 
+                                 let containerClass = "relative w-full p-3 md:p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between min-h-[64px] ";
+                                 
+                                 if (isAnswerRevealed) {
+                                     if (matchedLeftKey) {
+                                         const correctRight = currentQuestion.matchingPairs?.find(p => p.left === matchedLeftKey)?.right;
+                                         const isCorrect = correctRight === item;
+                                         containerClass += isCorrect 
+                                            ? "border-[#34A853] bg-[#34A853]/10 text-[#34A853]" 
+                                            : "border-[#EA4335] bg-[#EA4335]/10 text-[#EA4335]";
+                                     } else {
+                                         containerClass += "border-slate-200 dark:border-slate-700 opacity-40 grayscale";
+                                     }
                                  } else {
-                                     baseStyle += " border-slate-200 dark:border-slate-700 opacity-50";
+                                     if (isMatched) {
+                                        containerClass += "border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400";
+                                     } else {
+                                         // If left selected, highlight valid targets subtly
+                                        const isValidTarget = matchingState.selectedLeft; 
+                                        containerClass += isValidTarget 
+                                            ? "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer hover:border-[#4285F4] hover:shadow-md" 
+                                            : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800";
+                                     }
                                  }
-                             } else {
-                                 if (isMatched) baseStyle += " border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400";
-                                 else baseStyle += " border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#4285F4]";
-                             }
-
-                             return (
-                                <button key={idx} onClick={() => handleMatchClick('right', item)} disabled={isAnswerRevealed} className={baseStyle}>
-                                    {item}
-                                </button>
-                             )
-                        })}
+                                 
+                                 return (
+                                    <button key={idx} onClick={() => handleMatchClick('right', item)} disabled={isAnswerRevealed} className={containerClass}>
+                                        <span className="text-xs md:text-sm font-medium leading-tight">{item}</span>
+                                        {isMatched && <Link2 size={14} className="opacity-50 shrink-0 ml-2"/>}
+                                    </button>
+                                 )
+                            })}
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* 3. Standard Multiple Choice / True False */}
+            {/* Standard Options (MC, T/F) */}
             {(!isShortAnswer && !isOrdering && !isMatching) && (
                 currentQuestion.options.map((option, idx) => {
                     let baseClasses = "w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between group relative overflow-hidden transform active:scale-[0.98]";
@@ -440,10 +465,14 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                     let textClasses = "text-slate-600 dark:text-slate-300 font-medium text-sm md:text-base relative z-10";
 
                     if (isAnswerRevealed) {
-                        if (option === currentQuestion.correctAnswer) {
+                        // Safe trimmed comparison
+                        const isCorrectOption = option.trim() === currentQuestion.correctAnswer?.trim();
+                        const isSelectedOption = option === selectedOption;
+
+                        if (isCorrectOption) {
                             stateClasses = "bg-[#34A853]/10 dark:bg-[#34A853]/20 border-[#34A853] shadow-none";
                             textClasses = "text-[#34A853] dark:text-[#34A853] font-bold";
-                        } else if (option === selectedOption) {
+                        } else if (isSelectedOption) {
                             stateClasses = "bg-[#EA4335]/10 dark:bg-[#EA4335]/20 border-[#EA4335] shadow-none";
                             textClasses = "text-[#EA4335] dark:text-[#EA4335] font-medium";
                         } else {
@@ -463,10 +492,10 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                             style={{ transitionDelay: `${idx * 50}ms` }}
                         >
                             <span className={textClasses}>{option}</span>
-                            {isAnswerRevealed && option === currentQuestion.correctAnswer && (
+                            {isAnswerRevealed && option.trim() === currentQuestion.correctAnswer?.trim() && (
                                 <CheckCircle2 size={18} className="text-[#34A853] animate-in scale-in" />
                             )}
-                            {isAnswerRevealed && option === selectedOption && option !== currentQuestion.correctAnswer && (
+                            {isAnswerRevealed && option === selectedOption && option.trim() !== currentQuestion.correctAnswer?.trim() && (
                                 <XCircle size={18} className="text-[#EA4335] animate-in scale-in" />
                             )}
                         </button>
@@ -474,7 +503,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                 })
             )}
 
-            {/* 4. Short Answer */}
             {isShortAnswer && (
                 <div className="relative">
                     <textarea 
@@ -520,7 +548,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
 
             {isAnswerRevealed && (
                 <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-[1.25rem] shadow-sm animate-in slide-up overflow-hidden relative">
-                    {/* Status Banner */}
                     <div className={`flex items-center gap-2 mb-3 text-sm font-bold uppercase tracking-wide
                         ${isCurrentCorrect ? 'text-[#34A853]' : 'text-[#EA4335]'}`}>
                         {isCurrentCorrect ? 'Correct!' : (isTimeUp ? 'Time Up!' : 'Incorrect')}
@@ -533,23 +560,42 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                          </div>
                     )}
 
+                    {/* Standard Correct Answer Display for MC, TF, Short Answer */}
                     {(!isCurrentCorrect || isShortAnswer) && !isOrdering && !isMatching && (
                          <div className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-700">
                             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1 block">Correct Answer</span>
-                            <p className="text-slate-800 dark:text-slate-100 font-bold text-sm">{currentQuestion.correctAnswer}</p>
+                            <p className="text-slate-800 dark:text-slate-100 font-bold text-sm bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-700">
+                                {currentQuestion.correctAnswer}
+                            </p>
                          </div>
                     )}
                     
-                    {/* Ordering Correct Answer Display */}
+                    {/* Correct Sequence for Ordering */}
                     {isOrdering && !isCurrentCorrect && (
                          <div className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-700">
                              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1 block">Correct Sequence</span>
-                             <ol className="list-decimal list-inside text-xs text-slate-800 dark:text-slate-100 font-semibold space-y-1">
+                             <ol className="list-decimal list-inside text-xs text-slate-800 dark:text-slate-100 font-semibold space-y-1 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
                                 {currentQuestion.orderingItems?.map((item, i) => (
                                     <li key={i}>{item}</li>
                                 ))}
                              </ol>
                          </div>
+                    )}
+
+                    {/* Correct Matches for Matching - Newly Added */}
+                    {isMatching && !isCurrentCorrect && (
+                        <div className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-700">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1 block">Correct Matches</span>
+                        <div className="grid grid-cols-1 gap-1">
+                            {currentQuestion.matchingPairs?.map((pair, idx) => (
+                                <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{pair.left}</span>
+                                    <ArrowRight size={12} className="text-slate-400 mx-2" />
+                                    <span className="font-bold text-[#34A853]">{pair.right}</span>
+                                </div>
+                            ))}
+                        </div>
+                        </div>
                     )}
 
                     <div className="flex justify-between items-center mb-2">
@@ -570,7 +616,6 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
                         {explanationMode === 'standard' ? currentQuestion.explanation : currentQuestion.simpleExplanation}
                     </p>
 
-                    {/* External Media Integration */}
                     {currentQuestion.searchQuery && (
                          <a 
                             href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentQuestion.searchQuery)}`}
@@ -592,7 +637,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ questions, onFinish, onExit,
       </div>
 
       {/* Bottom Actions */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 z-30 transition-colors">
+      <div className="absolute bottom-0 left-0 right-0 p-5 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 z-30 transition-colors">
         {!isAnswerRevealed ? (
              <Button 
                 fullWidth 
