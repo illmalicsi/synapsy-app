@@ -1,0 +1,7 @@
+{
+  "name": "Synapsy",
+  "description": "Transform your notes and textbook photos into interactive quizzes instantly using Gemini AI.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

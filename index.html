@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Synapsy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            colors: {
+              primary: '#4285F4',
+              secondary: '#e8f0fe',
+              surface: '#ffffff',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f0f4f9; /* Google light gray background */
+      }
+      .dark body {
+        background-color: #0f172a;
+      }
+
+      /* Custom scrollbar hide for clean mobile look */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      /* Smooth touch scrolling */
+      html {
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      /* Animation Utilities */
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+      @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+      
+      .animate-in { animation-duration: 0.4s; animation-fill-mode: both; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .fade-in { animation-name: fadeIn; }
+      .slide-up { animation-name: slideInUp; }
+      .scale-in { animation-name: scaleIn; }
+      .floating { animation: float 6s ease-in-out infinite; }
+      .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+      
+      .bg-grid-pattern {
+        background-image: radial-gradient(#e1e7ef 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      .dark .bg-grid-pattern {
+        background-image: radial-gradient(#334155 1px, transparent 1px);
+      }
+      
+      /* Custom Scrollbar for modals */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 20px;
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #475569;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react/jsx-runtime": "https://aistudiocdn.com/react@^19.2.0/jsx-runtime",
+    "react/jsx-dev-runtime": "https://aistudiocdn.com/react@^19.2.0/jsx-dev-runtime",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "canvas-confetti": "https://aistudiocdn.com/canvas-confetti@^1.9.2",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>
+  <body class="text-slate-900 dark:text-slate-100 select-none antialiased transition-colors duration-300 overflow-hidden">
+    <div id="root"></div>
+  </body>
+</html>
