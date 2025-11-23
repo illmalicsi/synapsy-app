@@ -7,6 +7,6 @@ export default defineConfig({
   define: {
     // This allows the app to access process.env.API_KEY in the browser
     // Vercel injects this variable during the build process
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   }
 });
