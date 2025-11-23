@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { QuizHistoryItem } from '../types';
-import { ArrowLeft, Clock, Calendar, BarChart2, Target, Zap, BrainCircuit, ListChecks, CheckSquare, Type } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, BarChart2, Target, Zap, BrainCircuit, ListChecks, CheckSquare, Type, GalleryVerticalEnd, MinusSquare } from 'lucide-react';
 
 interface HistoryViewProps {
   history: QuizHistoryItem[];
@@ -36,6 +36,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, onBack }) => 
         case 'MULTIPLE_CHOICE': return <ListChecks size={14} />;
         case 'TRUE_FALSE': return <CheckSquare size={14} />;
         case 'SHORT_ANSWER': return <Type size={14} />;
+        case 'FLASHCARD': return <GalleryVerticalEnd size={14} />;
+        case 'FILL_IN_THE_BLANK': return <MinusSquare size={14} />;
         default: return <Zap size={14} />;
     }
   };

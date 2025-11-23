@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { X, Clock, BarChart2, CheckSquare, Zap, Layers, Split, ArrowUpDown } from 'lucide-react';
+import { X, Clock, BarChart2, CheckSquare, Zap, Layers, Split, ArrowUpDown, GalleryVerticalEnd, MinusSquare } from 'lucide-react';
 import { Button } from './Button';
 import { Difficulty, QuizSettings, QuestionType, QuizMode } from '../types';
 
@@ -45,6 +46,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       { type: QuestionType.SHORT_ANSWER, label: 'Short Answer', icon: <Layers size={14}/> },
       { type: QuestionType.ORDERING, label: 'Ordering', icon: <ArrowUpDown size={14}/> },
       { type: QuestionType.MATCHING, label: 'Matching', icon: <Split size={14}/> },
+      { type: QuestionType.FLASHCARD, label: 'Flashcards', icon: <GalleryVerticalEnd size={14}/> },
+      { type: QuestionType.FILL_IN_THE_BLANK, label: 'Fill in Blank', icon: <MinusSquare size={14}/> },
   ];
 
   return (

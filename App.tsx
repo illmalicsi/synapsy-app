@@ -89,7 +89,7 @@ export default function App() {
       setUser(finalUpdate);
   };
 
-  const handleGenerate = async (text: string, images: File[], mode: QuizMode, count: number, settings: QuizSettings) => {
+  const handleGenerate = async (text: string, files: File[], mode: QuizMode, count: number, settings: QuizSettings) => {
     setAppState(AppState.LOADING);
     setError(null);
     setActiveSettings(settings);
@@ -99,13 +99,13 @@ export default function App() {
     let topic = "General Review";
     if (text.trim().length > 0) {
         topic = text.slice(0, 30).split('\n')[0] + (text.length > 30 ? '...' : '');
-    } else if (images.length > 0) {
-        topic = `Visual Study (${images.length} images)`;
+    } else if (files.length > 0) {
+        topic = `File Study (${files.length} files)`;
     }
     setCurrentTopic(topic);
 
     try {
-      const generatedQuestions = await generateQuizFromContent(text, images, mode, count, settings);
+      const generatedQuestions = await generateQuizFromContent(text, files, mode, count, settings);
       setQuestions(generatedQuestions);
       setAppState(AppState.QUIZ);
     } catch (err: any) {

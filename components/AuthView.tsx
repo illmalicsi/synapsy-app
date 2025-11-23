@@ -140,9 +140,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onRegister, error }
       </div>
       
       {/* Footer info */}
-      <p className="mt-6 text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">
-        Secure • Private • AI-Powered
-      </p>
+      <div className="mt-6 text-center">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium opacity-80 mb-1">
+          by Ivan Louie Malicsi
+        </p>
+        <p className="text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">
+            Secure • Private • AI-Powered
+        </p>
+      </div>
 
     </div>
   );

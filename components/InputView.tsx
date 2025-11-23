@@ -1,19 +1,19 @@
 
 import React, { useState, useRef } from 'react';
 import { Button } from './Button';
-import { Camera, X, Sparkles, Shuffle, ListChecks, CheckSquare, Type, Dice5, FileText, Image as ImageIcon, Settings as SettingsIcon, SlidersHorizontal, BrainCircuit, ScanSearch, CheckCircle2 } from 'lucide-react';
+import { Camera, X, Sparkles, Shuffle, ListChecks, CheckSquare, Type, Dice5, FileText, Image as ImageIcon, Settings as SettingsIcon, SlidersHorizontal, BrainCircuit, ScanSearch, CheckCircle2, Paperclip, FileType, GalleryVerticalEnd, MinusSquare } from 'lucide-react';
 import { QuizMode, QuizSettings, QuestionType } from '../types';
 import { SettingsModal } from './SettingsModal';
 
 interface InputViewProps {
-  onGenerate: (text: string, images: File[], mode: QuizMode, count: number, settings: QuizSettings) => void;
+  onGenerate: (text: string, files: File[], mode: QuizMode, count: number, settings: QuizSettings) => void;
   isGenerating: boolean;
   userName?: string;
 }
 
 export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, userName = "Student" }) => {
   const [text, setText] = useState('');
-  const [images, setImages] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [quizMode, setQuizMode] = useState<QuizMode>('MIXED');
   
@@ -22,20 +22,20 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
   const [settings, setSettings] = useState<QuizSettings>({
     difficulty: 'MEDIUM',
     timeLimit: 0,
-    allowedTypes: [QuestionType.MULTIPLE_CHOICE, QuestionType.TRUE_FALSE, QuestionType.SHORT_ANSWER, QuestionType.MATCHING, QuestionType.ORDERING]
+    allowedTypes: [QuestionType.MULTIPLE_CHOICE, QuestionType.TRUE_FALSE, QuestionType.SHORT_ANSWER, QuestionType.MATCHING, QuestionType.ORDERING, QuestionType.FILL_IN_THE_BLANK, QuestionType.FLASHCARD]
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setImages(prev => [...prev, ...newFiles]);
+      setFiles(prev => [...prev, ...newFiles]);
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const triggerFileInput = () => {
@@ -43,8 +43,8 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
   };
 
   const handleGenerate = () => {
-    if (!text.trim() && images.length === 0) return;
-    onGenerate(text, images, quizMode, questionCount, settings);
+    if (!text.trim() && files.length === 0) return;
+    onGenerate(text, files, quizMode, questionCount, settings);
   };
 
   const handleSurpriseMe = () => {
@@ -62,7 +62,9 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
 
   const quizModes: { id: QuizMode; label: string; sub: string; icon: React.ReactNode; color: string; bg: string; }[] = [
     { id: 'MIXED', label: 'Mixed', sub: 'Best variety', icon: <Shuffle size={20} />, color: 'text-[#FBBC05]', bg: 'bg-[#FBBC05]' },
+    { id: 'FLASHCARD', label: 'Flashcards', sub: 'Flip & Learn', icon: <GalleryVerticalEnd size={20} />, color: 'text-pink-500', bg: 'bg-pink-500' },
     { id: 'CONCEPTUAL', label: 'Deep Work', sub: 'Match & Order', icon: <BrainCircuit size={20} />, color: 'text-purple-500', bg: 'bg-purple-500' },
+    { id: 'FILL_IN_THE_BLANK', label: 'Blanks', sub: 'Complete it', icon: <MinusSquare size={20} />, color: 'text-cyan-500', bg: 'bg-cyan-500' },
     { id: 'MULTIPLE_CHOICE', label: 'Choices', sub: 'Standard MC', icon: <ListChecks size={20} />, color: 'text-[#4285F4]', bg: 'bg-[#4285F4]' },
     { id: 'TRUE_FALSE', label: 'True/False', sub: 'Quick check', icon: <CheckSquare size={20} />, color: 'text-[#34A853]', bg: 'bg-[#34A853]' },
     { id: 'SHORT_ANSWER', label: 'Short', sub: 'Type answers', icon: <Type size={20} />, color: 'text-[#EA4335]', bg: 'bg-[#EA4335]' },
@@ -103,7 +105,7 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
         <section className="mb-8">
             <div className="flex items-center justify-between mb-3 px-1">
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Source Material</span>
-                {images.length > 0 && <span className="text-[10px] font-bold text-[#34A853] bg-[#34A853]/10 px-2 py-0.5 rounded-md animate-in scale-in">{images.length} attached</span>}
+                {files.length > 0 && <span className="text-[10px] font-bold text-[#34A853] bg-[#34A853]/10 px-2 py-0.5 rounded-md animate-in scale-in">{files.length} attached</span>}
             </div>
             
             <div className="bg-slate-50 dark:bg-slate-900 p-1.5 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 focus-within:ring-2 focus-within:ring-[#4285F4]/50 focus-within:border-[#4285F4] transition-all hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md group">
@@ -115,13 +117,20 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
                     disabled={isGenerating}
                 />
                 
-                {images.length > 0 && (
+                {files.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto px-4 pb-4 pt-2 no-scrollbar">
-                        {images.map((img, idx) => (
-                        <div key={idx} className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-sm group animate-in scale-in">
-                            <img src={URL.createObjectURL(img)} alt="preview" className="w-full h-full object-cover" />
+                        {files.map((file, idx) => (
+                        <div key={idx} className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-sm group animate-in scale-in bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            {file.type === 'application/pdf' ? (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/20">
+                                    <FileText size={20} className="text-red-500 dark:text-red-400" />
+                                    <span className="text-[8px] font-bold text-red-500 dark:text-red-400 mt-1 uppercase">PDF</span>
+                                </div>
+                            ) : (
+                                <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
+                            )}
                             <button
-                            onClick={() => removeImage(idx)}
+                            onClick={() => removeFile(idx)}
                             className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                             <X size={14} className="text-white" />
@@ -133,7 +142,7 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
 
                 <div className="flex justify-between items-center px-2 py-2 border-t border-slate-200/50 dark:border-slate-700">
                     <div className="flex items-center gap-2 pl-2">
-                        <FileText size={16} className={text ? "text-[#4285F4]" : "text-slate-300 dark:text-slate-600"} />
+                        <Type size={16} className={text ? "text-[#4285F4]" : "text-slate-300 dark:text-slate-600"} />
                         <span className="text-xs font-semibold text-slate-400 dark:text-slate-600">{text.length} chars</span>
                     </div>
                     <div>
@@ -141,17 +150,17 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
                             type="file"
                             ref={fileInputRef}
                             className="hidden"
-                            accept="image/*"
+                            accept="image/*,application/pdf"
                             multiple
-                            onChange={handleImageUpload}
+                            onChange={handleFileUpload}
                         />
                         <button 
                             onClick={triggerFileInput}
                             disabled={isGenerating}
                             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold shadow-sm border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 transition-all active:scale-95"
                         >
-                            <ImageIcon size={14} />
-                            <span>Add Image</span>
+                            <Paperclip size={14} />
+                            <span>Add File</span>
                         </button>
                     </div>
                 </div>
@@ -172,7 +181,7 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
              </div>
 
              {/* Even scrolling list for mobile, grid for desktop */}
-             <div className="flex overflow-x-auto pb-4 gap-3 -mx-5 px-5 md:mx-0 md:px-0 md:grid md:grid-cols-5 md:overflow-visible md:pb-0 no-scrollbar snap-x snap-mandatory">
+             <div className="flex overflow-x-auto pb-4 gap-3 -mx-5 px-5 md:mx-0 md:px-0 md:grid md:grid-cols-4 lg:grid-cols-7 md:overflow-visible md:pb-0 no-scrollbar snap-x snap-mandatory">
                 {quizModes.map((mode, idx) => {
                     const isActive = quizMode === mode.id;
                     return (
@@ -232,7 +241,7 @@ export const InputView: React.FC<InputViewProps> = ({ onGenerate, isGenerating, 
                 size="lg" 
                 onClick={handleGenerate}
                 isLoading={isGenerating}
-                disabled={!text.trim() && images.length === 0}
+                disabled={!text.trim() && files.length === 0}
                 className={`bg-[#4285F4] hover:bg-[#3367d6] text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/20 py-4 text-lg font-bold rounded-2xl transition-all active:scale-[0.98] ${isGenerating ? 'animate-pulse' : ''}`}
                 icon={<Sparkles size={18} className="text-blue-200" />}
             >

@@ -4,6 +4,16 @@ import { QuizQuestion, QuizMode, QuizSettings } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// Helper to determine mime type if missing
+const getMimeType = (file: File) => {
+    if (file.type) return file.type;
+    if (file.name.endsWith('.pdf')) return 'application/pdf';
+    if (file.name.match(/\.(jpg|jpeg)$/i)) return 'image/jpeg';
+    if (file.name.match(/\.png$/i)) return 'image/png';
+    if (file.name.match(/\.webp$/i)) return 'image/webp';
+    return file.type; 
+};
+
 // Helper to convert file to base64
 export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
   return new Promise((resolve, reject) => {
@@ -14,12 +24,12 @@ export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { 
         reject(new Error("Failed to read file"));
         return;
       }
-      // Remove data url prefix (e.g. "data:image/jpeg;base64,")
+      // Remove data url prefix (e.g. "data:image/jpeg;base64," or "data:application/pdf;base64,")
       const base64Data = base64String.split(',')[1];
       resolve({
         inlineData: {
           data: base64Data,
-          mimeType: file.type,
+          mimeType: getMimeType(file),
         },
       });
     };
@@ -30,7 +40,7 @@ export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { 
 
 export const generateQuizFromContent = async (
   textNotes: string,
-  images: File[],
+  files: File[],
   mode: QuizMode = 'MIXED',
   count: number = 5,
   settings?: QuizSettings
@@ -40,18 +50,20 @@ export const generateQuizFromContent = async (
   const parts: any[] = [];
 
   if (textNotes.trim()) {
-    parts.push({ text: `Here are my study notes: \n\n${textNotes}` });
+    parts.push({ text: `Here are my study notes/topic: \n\n${textNotes}` });
   }
 
-  for (const img of images) {
-    const imagePart = await fileToGenerativePart(img);
-    parts.push(imagePart);
+  for (const file of files) {
+    const filePart = await fileToGenerativePart(file);
+    parts.push(filePart);
   }
 
   let typeInstruction = "Mix multiple choice, true/false, and short answer questions.";
   if (mode === 'MULTIPLE_CHOICE') typeInstruction = "Generate only Multiple Choice questions.";
   else if (mode === 'TRUE_FALSE') typeInstruction = "Generate only True/False questions.";
   else if (mode === 'SHORT_ANSWER') typeInstruction = "Generate only Short Answer questions.";
+  else if (mode === 'FLASHCARD') typeInstruction = "Generate only FLASHCARD items. Question is the Front, CorrectAnswer is the Back.";
+  else if (mode === 'FILL_IN_THE_BLANK') typeInstruction = "Generate only FILL_IN_THE_BLANK questions.";
   else if (mode === 'CONCEPTUAL') typeInstruction = "Generate only ORDERING (Ranking/Sequence) and MATCHING (Concept Mapping) questions to test deep understanding.";
   else if (mode === 'MIXED' && settings?.allowedTypes) {
     // Custom mix based on settings
@@ -70,14 +82,18 @@ export const generateQuizFromContent = async (
   // System prompt to guide the generation
   const prompt = `
     Create a study quiz based on the provided content.
+    The content may include text notes and attached files (images or PDFs).
+    Analyze all attached documents thoroughly.
+    
     Generate exactly ${count} questions.
     ${typeInstruction}
     ${difficultyInstruction}
     
     IMPORTANT RULES:
-    1. Questions must be educational and test understanding.
+    1. Questions must be educational and test understanding of the specific provided content.
     2. Provide clear, concise explanations for answers.
     3. For Multiple Choice, provide 4 options.
+       CRITICAL: The 'correctAnswer' field MUST be the exact text of the correct option string, NOT the letter (e.g., if option A is "Paris", correctAnswer must be "Paris", NOT "A").
     4. For Short Answer, options array must be empty.
     5. 'hint' should be a subtle clue that nudges the user without giving the answer.
     6. 'simpleExplanation' should explain the concept like I'm 5 years old (ELI5), using a fun analogy.
@@ -90,6 +106,15 @@ export const generateQuizFromContent = async (
     FOR "MATCHING" TYPE:
     - Provide exactly 4 pairs in 'matchingPairs'. 
     - The 'question' should ask to match concepts (e.g., "Match the programming language to its primary use").
+
+    FOR "FLASHCARD" TYPE:
+    - 'question' is the Front of the card (Concept/Term/Question).
+    - 'correctAnswer' is the Back of the card (Definition/Fact/Answer). Keep it concise (under 20 words).
+    - 'explanation' can provide more context.
+
+    FOR "FILL_IN_THE_BLANK" TYPE:
+    - 'question' must be a sentence with a missing part represented by exactly 6 underscores: "______".
+    - 'correctAnswer' is the missing word or short phrase.
     
     Output valid JSON only, no markdown.
     Keep the response compact to ensure it fits within token limits for ${count} questions.
@@ -111,7 +136,7 @@ export const generateQuizFromContent = async (
             id: { type: Type.INTEGER },
             type: { 
               type: Type.STRING, 
-              enum: ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'ORDERING', 'MATCHING'] 
+              enum: ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'ORDERING', 'MATCHING', 'FLASHCARD', 'FILL_IN_THE_BLANK'] 
             },
             question: { type: Type.STRING },
             options: { 
@@ -121,7 +146,7 @@ export const generateQuizFromContent = async (
             },
             correctAnswer: { 
               type: Type.STRING,
-              description: "The correct option text or the answer string. Ignored for Ordering/Matching."
+              description: "The EXACT text of the correct option from the options array. For Flashcard, this is the Back content."
             },
             orderingItems: {
                 type: Type.ARRAY,
