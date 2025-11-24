@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { QuizQuestion, QuizMode, QuizSettings } from "../types";
+import { QuizQuestion, QuizMode, QuizSettings, AIPersonality } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -38,6 +38,93 @@ export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { 
   });
 };
 
+export const generateSummary = async (
+  textNotes: string,
+  files: File[]
+): Promise<string> => {
+  const model = "gemini-2.5-flash";
+  const parts: any[] = [];
+
+  if (textNotes.trim()) {
+    parts.push({ text: `Here are my study notes/topic: \n\n${textNotes}` });
+  }
+
+  for (const file of files) {
+    const filePart = await fileToGenerativePart(file);
+    parts.push(filePart);
+  }
+
+  const prompt = `
+    Analyze the provided content (text and files) and create a comprehensive study summary.
+    
+    Structure the summary as follows:
+    1. A brief 1-sentence overview of the main topic.
+    2. Key Concepts & Definitions (bullet points).
+    3. Important Details (bullet points, grouped by sub-topic if necessary).
+    4. Key Takeaways.
+
+    Use clear, concise language. 
+    Format using standard text. 
+    Use "•" for bullet points.
+    Use CAPS for section headers (e.g., "KEY CONCEPTS").
+    Do not use markdown symbols like ** or ##.
+    Ensure the output is clean and easy to read.
+  `;
+  
+  parts.push({ text: prompt });
+
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: { parts: parts },
+    config: {
+      systemInstruction: "You are an expert tutor. Create clear, structured study summaries.",
+    }
+  });
+
+  return response.text || "Could not generate summary.";
+};
+
+// Validate Explain-It-Back
+export const validateExplanation = async (
+    conceptQuestion: string,
+    correctConcept: string,
+    userExplanation: string
+): Promise<{ isCorrect: boolean; feedback: string }> => {
+    const model = "gemini-2.5-flash";
+    const prompt = `
+      I asked a student: "${conceptQuestion}".
+      The correct key concept/answer is: "${correctConcept}".
+      The student explained: "${userExplanation}".
+
+      Evaluate if the student understands the concept.
+      1. isCorrect: true if they grasped the core meaning, even if wording is different. false if they are wrong or missed the point completely.
+      2. feedback: A short, 1-sentence supportive feedback. If wrong, gently correct them.
+    `;
+    
+    const response = await ai.models.generateContent({
+        model: model,
+        contents: { parts: [{ text: prompt }] },
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    isCorrect: { type: Type.BOOLEAN },
+                    feedback: { type: Type.STRING }
+                },
+                required: ["isCorrect", "feedback"]
+            }
+        }
+    });
+
+    if (!response.text) return { isCorrect: false, feedback: "Could not validate." };
+    try {
+        return JSON.parse(response.text);
+    } catch {
+        return { isCorrect: false, feedback: "Error parsing validation." };
+    }
+};
+
 export const generateQuizFromContent = async (
   textNotes: string,
   files: File[],
@@ -45,7 +132,7 @@ export const generateQuizFromContent = async (
   count: number = 5,
   settings?: QuizSettings
 ): Promise<QuizQuestion[]> => {
-  const model = "gemini-2.5-flash"; // Efficient for this task
+  const model = "gemini-2.5-flash"; 
 
   const parts: any[] = [];
 
@@ -65,8 +152,8 @@ export const generateQuizFromContent = async (
   else if (mode === 'FLASHCARD') typeInstruction = "Generate only FLASHCARD items. Question is the Front, CorrectAnswer is the Back.";
   else if (mode === 'FILL_IN_THE_BLANK') typeInstruction = "Generate only FILL_IN_THE_BLANK questions.";
   else if (mode === 'CONCEPTUAL') typeInstruction = "Generate only ORDERING (Ranking/Sequence) and MATCHING (Concept Mapping) questions to test deep understanding.";
+  else if (mode === 'BOSS_BATTLE') typeInstruction = "Generate HIGH STAKES questions. Mostly Multiple Choice and Short Answer, but make them challenging scenarios.";
   else if (mode === 'MIXED' && settings?.allowedTypes) {
-    // Custom mix based on settings
     const types = settings.allowedTypes.map(t => t.replace('_', ' ')).join(', ');
     typeInstruction = `Generate a mix of only these question types: ${types}.`;
   }
@@ -79,7 +166,22 @@ export const generateQuizFromContent = async (
     if (diff === 'HARD') difficultyInstruction = "Make the questions HARD and complex, requiring analysis and critical thinking. Use scenarios where possible.";
   }
 
-  // System prompt to guide the generation
+  // Persona Logic
+  let personaInstruction = "You are an expert tutor.";
+  let toneInstruction = "Provide clear, concise explanations.";
+  
+  if (settings?.personality === AIPersonality.COACH) {
+      personaInstruction = "You are a high-energy, tough-love sports coach for the brain. 'DROP AND GIVE ME 20 FACTS!' style.";
+      toneInstruction = "Use uppercase for emphasis. Be motivational but intense. Call the user 'Cadet' or 'Rookie'.";
+  } else if (settings?.personality === AIPersonality.BUDDY) {
+      personaInstruction = "You are a chill, supportive study buddy who uses slang (like 'no cap', 'bet', 'lit').";
+      toneInstruction = "Keep it casual. Use emojis. Act like a peer.";
+  } else if (settings?.personality === AIPersonality.SOCRATIC) {
+      personaInstruction = "You are a Socratic professor. You rarely give direct answers, preferring to ask guiding questions.";
+      toneInstruction = "In the 'explanation' field, do NOT just give the answer. Instead, explain the logic path so the user discovers it.";
+  }
+
+  // System prompt
   const prompt = `
     Create a study quiz based on the provided content.
     The content may include text notes and attached files (images or PDFs).
@@ -88,36 +190,32 @@ export const generateQuizFromContent = async (
     Generate exactly ${count} questions.
     ${typeInstruction}
     ${difficultyInstruction}
+    ${toneInstruction}
     
     IMPORTANT RULES:
     1. Questions must be educational and test understanding of the specific provided content.
-    2. Provide clear, concise explanations for answers.
-    3. For Multiple Choice, provide 4 options.
-       CRITICAL: The 'correctAnswer' field MUST be the exact text of the correct option string, NOT the letter (e.g., if option A is "Paris", correctAnswer must be "Paris", NOT "A").
-    4. For Short Answer, options array must be empty.
-    5. 'hint' should be a subtle clue that nudges the user without giving the answer.
-    6. 'simpleExplanation' should explain the concept like I'm 5 years old (ELI5), using a fun analogy.
-    7. 'searchQuery' should be a specific string optimized for YouTube/Google Search to find a video lesson on this specific topic (e.g., "How photosynthesis works animation").
+    2. For Multiple Choice, provide 4 options.
+       CRITICAL: The 'correctAnswer' field MUST be the exact text of the correct option string.
+    3. For Short Answer, options array must be empty.
+    4. 'hint' should be a progressive clue.
+    5. 'simpleExplanation' should explain the concept like I'm 5 years old (ELI5), using a fun analogy.
+    6. 'searchQuery' should be a specific string optimized for YouTube/Google Search.
     
     FOR "ORDERING" TYPE:
     - Provide a list of 3-5 items in 'orderingItems' that represent a sequence, hierarchy, or process step-by-step.
-    - The 'question' should ask to arrange them (e.g., "Arrange the phases of Mitosis").
     
     FOR "MATCHING" TYPE:
     - Provide exactly 4 pairs in 'matchingPairs'. 
-    - The 'question' should ask to match concepts (e.g., "Match the programming language to its primary use").
 
     FOR "FLASHCARD" TYPE:
-    - 'question' is the Front of the card (Concept/Term/Question).
-    - 'correctAnswer' is the Back of the card (Definition/Fact/Answer). Keep it concise (under 20 words).
-    - 'explanation' can provide more context.
+    - 'question' is the Front of the card.
+    - 'correctAnswer' is the Back of the card.
 
     FOR "FILL_IN_THE_BLANK" TYPE:
     - 'question' must be a sentence with a missing part represented by exactly 6 underscores: "______".
     - 'correctAnswer' is the missing word or short phrase.
     
     Output valid JSON only, no markdown.
-    Keep the response compact to ensure it fits within token limits for ${count} questions.
   `;
   
   parts.push({ text: prompt });
@@ -126,7 +224,7 @@ export const generateQuizFromContent = async (
     model: model,
     contents: { parts: parts },
     config: {
-      systemInstruction: "You are an expert tutor. Output strictly valid JSON arrays of quiz objects.",
+      systemInstruction: personaInstruction + " Output strictly valid JSON arrays of quiz objects.",
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.ARRAY,
@@ -141,17 +239,12 @@ export const generateQuizFromContent = async (
             question: { type: Type.STRING },
             options: { 
               type: Type.ARRAY, 
-              items: { type: Type.STRING },
-              description: "Options for MC (4) or T/F (2). Empty for others." 
+              items: { type: Type.STRING }
             },
-            correctAnswer: { 
-              type: Type.STRING,
-              description: "The EXACT text of the correct option from the options array. For Flashcard, this is the Back content."
-            },
+            correctAnswer: { type: Type.STRING },
             orderingItems: {
                 type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: "The correct ordered list for ORDERING questions."
+                items: { type: Type.STRING }
             },
             matchingPairs: {
                 type: Type.ARRAY,
@@ -161,13 +254,12 @@ export const generateQuizFromContent = async (
                         left: { type: Type.STRING },
                         right: { type: Type.STRING }
                     }
-                },
-                description: "The key-value pairs for MATCHING questions."
+                }
             },
-            explanation: { type: Type.STRING, description: "Technical/Academic explanation." },
-            hint: { type: Type.STRING, description: "A subtle clue." },
-            simpleExplanation: { type: Type.STRING, description: "A very simple analogy explanation (ELI5)." },
-            searchQuery: { type: Type.STRING, description: "Search term for finding educational videos." }
+            explanation: { type: Type.STRING },
+            hint: { type: Type.STRING },
+            simpleExplanation: { type: Type.STRING },
+            searchQuery: { type: Type.STRING }
           },
           required: ["id", "type", "question", "options", "explanation", "hint", "simpleExplanation", "searchQuery"],
         }

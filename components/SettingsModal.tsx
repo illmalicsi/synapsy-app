@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { X, Clock, BarChart2, CheckSquare, Zap, Layers, Split, ArrowUpDown, GalleryVerticalEnd, MinusSquare } from 'lucide-react';
+import { X, Clock, BarChart2, CheckSquare, Zap, Layers, Split, ArrowUpDown, GalleryVerticalEnd, MinusSquare, BrainCircuit, Mic, Lock } from 'lucide-react';
 import { Button } from './Button';
-import { Difficulty, QuizSettings, QuestionType, QuizMode } from '../types';
+import { Difficulty, QuizSettings, QuestionType, QuizMode, AIPersonality, UserProfile } from '../types';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface SettingsModalProps {
   settings: QuizSettings;
   onUpdateSettings: (s: QuizSettings) => void;
   quizMode: QuizMode;
+  user?: UserProfile | null;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -17,7 +18,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose, 
   settings, 
   onUpdateSettings,
-  quizMode
+  quizMode,
+  user
 }) => {
   if (!isOpen) return null;
 
@@ -25,6 +27,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     { id: 'EASY', label: 'Easy', color: 'bg-green-100 text-green-700 border-green-200', darkColor: 'dark:bg-green-900/30 dark:text-green-400 dark:border-green-800', icon: <Zap size={16} /> },
     { id: 'MEDIUM', label: 'Medium', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', darkColor: 'dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800', icon: <BarChart2 size={16} /> },
     { id: 'HARD', label: 'Hard', color: 'bg-red-100 text-red-700 border-red-200', darkColor: 'dark:bg-red-900/30 dark:text-red-400 dark:border-red-800', icon: <Layers size={16} /> }
+  ];
+
+  const personalities = [
+      { id: AIPersonality.PROFESSOR, label: 'Professor', desc: 'Formal & structured', unlocked: true },
+      { id: AIPersonality.COACH, label: 'Coach', desc: 'High energy', unlocked: user?.stats?.unlockedPersonas.includes(AIPersonality.COACH) },
+      { id: AIPersonality.BUDDY, label: 'Buddy', desc: 'Chill & casual', unlocked: user?.stats?.unlockedPersonas.includes(AIPersonality.BUDDY) },
+      { id: AIPersonality.SOCRATIC, label: 'Socratic', desc: 'Questioning', unlocked: user?.stats?.unlockedPersonas.includes(AIPersonality.SOCRATIC) },
   ];
 
   const timeOptions = [0, 30, 60, 120];
@@ -75,6 +84,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Scrollable Body */}
         <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
           
+          {/* AI Personality Section */}
+          <section>
+              <div className="flex items-center gap-2 mb-4">
+                  <BrainCircuit className="text-purple-500 dark:text-purple-400" size={20} />
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">AI Personality</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                  {personalities.map((p) => (
+                      <button
+                        key={p.id}
+                        disabled={!p.unlocked}
+                        onClick={() => p.unlocked && onUpdateSettings({...settings, personality: p.id})}
+                        className={`relative p-3 rounded-xl border-2 flex flex-col items-start gap-1 transition-all ${
+                            settings.personality === p.id
+                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                        } ${!p.unlocked ? 'opacity-50 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-purple-300'}`}
+                      >
+                          <span className="text-sm font-bold text-slate-800 dark:text-white">{p.label}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{p.desc}</span>
+                          {!p.unlocked && <Lock size={12} className="absolute top-2 right-2 text-slate-400" />}
+                      </button>
+                  ))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2">Study more to unlock new AI personas!</p>
+          </section>
+
+          {/* Explain It Back Toggle */}
+          <section>
+              <div className="flex items-center justify-between bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
+                  <div className="flex items-center gap-2">
+                      <Mic className="text-indigo-600 dark:text-indigo-400" size={18} />
+                      <div>
+                          <h3 className="font-bold text-sm text-slate-800 dark:text-white">Explain It Back</h3>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Prove understanding by typing answers</p>
+                      </div>
+                  </div>
+                  <button 
+                    onClick={() => onUpdateSettings({...settings, enableExplainItBack: !settings.enableExplainItBack})}
+                    className={`w-10 h-6 rounded-full p-1 transition-colors ${settings.enableExplainItBack ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                  >
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.enableExplainItBack ? 'translate-x-4' : ''}`}></div>
+                  </button>
+              </div>
+          </section>
+
           {/* Difficulty Section */}
           <section>
             <div className="flex items-center gap-2 mb-4">

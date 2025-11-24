@@ -9,14 +9,23 @@ export enum QuestionType {
   FLASHCARD = 'FLASHCARD'
 }
 
-export type QuizMode = 'MIXED' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER' | 'CONCEPTUAL' | 'FLASHCARD' | 'FILL_IN_THE_BLANK';
+export type QuizMode = 'MIXED' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER' | 'CONCEPTUAL' | 'FLASHCARD' | 'FILL_IN_THE_BLANK' | 'BOSS_BATTLE';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+export enum AIPersonality {
+  PROFESSOR = 'PROFESSOR', // Standard, academic
+  COACH = 'COACH',         // High energy, tough love
+  BUDDY = 'BUDDY',         // Casual, slang, friendly
+  SOCRATIC = 'SOCRATIC'    // Asks questions back (used in hints/explanations)
+}
 
 export interface QuizSettings {
   difficulty: Difficulty;
   timeLimit: number; // seconds per question, 0 for off
   allowedTypes: QuestionType[]; // for filtering mixed mode
+  personality: AIPersonality;
+  enableExplainItBack: boolean; // New feature
 }
 
 export interface QuizQuestion {
@@ -42,6 +51,16 @@ export interface QuizResult {
   totalQuestions: number;
   correctAnswers: number;
   timeTaken: number; // in seconds
+  xpEarned: number; // New gamification
+}
+
+export interface UserStats {
+  totalMinutesStudied: number;
+  quizzesCompleted: number;
+  totalXp: number;
+  streakDays: number;
+  lastStudyDate: number; // timestamp
+  unlockedPersonas: AIPersonality[];
 }
 
 export interface UserProfile {
@@ -49,6 +68,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarSeed: string;
+  stats?: UserStats; // Optional for backward compatibility
 }
 
 export interface QuizHistoryItem {
@@ -68,5 +88,6 @@ export enum AppState {
   LOADING = 'LOADING',
   QUIZ = 'QUIZ',
   RESULTS = 'RESULTS',
-  HISTORY = 'HISTORY'
+  HISTORY = 'HISTORY',
+  SUMMARY = 'SUMMARY'
 }

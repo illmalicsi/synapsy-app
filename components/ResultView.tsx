@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { QuizResult } from '../types';
 import { Button } from './Button';
-import { RotateCcw, Plus, Trophy, Clock, CheckCircle2, Target } from 'lucide-react';
+import { RotateCcw, Plus, Trophy, Clock, CheckCircle2, Target, Flame, Star, Award, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ResultViewProps {
@@ -12,12 +13,23 @@ interface ResultViewProps {
 
 export const ResultView: React.FC<ResultViewProps> = ({ result, onRetry, onNew }) => {
   const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
-  const [displayPercent, setDisplayPercent] = useState(0);
+  const [displayXp, setDisplayXp] = useState(0);
   
+  // Calculate Grade
+  let grade = 'F';
+  let gradeColor = 'text-red-500';
+  let gradeBg = 'bg-red-500';
+  
+  if (percentage >= 100) { grade = 'S'; gradeColor = 'text-yellow-500'; gradeBg = 'bg-yellow-500'; }
+  else if (percentage >= 90) { grade = 'A'; gradeColor = 'text-green-500'; gradeBg = 'bg-green-500'; }
+  else if (percentage >= 80) { grade = 'B'; gradeColor = 'text-blue-500'; gradeBg = 'bg-blue-500'; }
+  else if (percentage >= 70) { grade = 'C'; gradeColor = 'text-indigo-500'; gradeBg = 'bg-indigo-500'; }
+  else if (percentage >= 60) { grade = 'D'; gradeColor = 'text-orange-500'; gradeBg = 'bg-orange-500'; }
+
   // Confetti effect on mount if high score
   useEffect(() => {
     if (percentage >= 70) {
-      const duration = 3000;
+      const duration = 2000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
@@ -45,70 +57,107 @@ export const ResultView: React.FC<ResultViewProps> = ({ result, onRetry, onNew }
     }
   }, [percentage]);
 
-  // Count up animation
+  // XP Count up animation
   useEffect(() => {
     let start = 0;
+    const end = result.xpEarned || 0;
     const duration = 1500;
-    if (percentage === 0) return;
+    if (end === 0) return;
     
-    const stepTime = Math.max(10, Math.floor(duration / percentage));
+    const stepTime = Math.max(10, Math.floor(duration / end));
     
     const timer = setInterval(() => {
-      start += 1;
-      setDisplayPercent(start);
-      if (start >= percentage) clearInterval(timer);
+      start += Math.ceil(end / 50);
+      if (start >= end) {
+          start = end;
+          clearInterval(timer);
+      }
+      setDisplayXp(start);
     }, stepTime);
     
     return () => clearInterval(timer);
-  }, [percentage]);
-
-  let message = "Good effort!";
-  let subMessage = "Keep practicing to improve.";
-  if (percentage >= 90) { message = "Outstanding!"; subMessage = "You've mastered this topic."; }
-  else if (percentage >= 70) { message = "Great Job!"; subMessage = "You're getting really good at this."; }
+  }, [result.xpEarned]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-800 relative overflow-hidden transition-colors duration-300">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 relative overflow-hidden transition-colors duration-300">
       
-      <div className="flex-1 flex flex-col items-center justify-center p-8 animate-in scale-in duration-500">
+      {/* Hero Section */}
+      <div className="relative z-10 bg-white dark:bg-slate-800 rounded-b-[3rem] shadow-xl pb-10 pt-8 px-6 text-center border-b border-slate-100 dark:border-slate-700">
           
-          <div className="relative mb-8 transform transition-transform hover:scale-105 duration-300">
-             <div className={`w-36 h-36 rounded-full flex items-center justify-center text-4xl font-black border-[10px] shadow-2xl dark:shadow-none transition-all duration-1000 ${
-                 percentage >= 70 
-                 ? 'border-[#34A853] text-[#34A853] bg-[#34A853]/5 dark:bg-[#34A853]/10 shadow-green-200' 
-                 : 'border-[#FBBC05] text-[#FBBC05] bg-[#FBBC05]/5 dark:bg-[#FBBC05]/10 shadow-yellow-200'
-             }`}>
-                 {displayPercent}%
-             </div>
-             {percentage >= 90 && (
-                 <div className="absolute -top-4 -right-4 bg-[#FBBC05] text-white p-3 rounded-full shadow-lg rotate-12 animate-bounce">
-                     <Trophy size={28} fill="white" />
-                 </div>
-             )}
+          <div className="inline-block relative mb-4">
+               {/* Grade Circle */}
+               <div className={`w-32 h-32 rounded-full flex items-center justify-center text-6xl font-black border-[8px] border-slate-100 dark:border-slate-700 shadow-inner ${gradeColor}`}>
+                   {grade}
+               </div>
+               {percentage >= 100 && (
+                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-white p-2 rounded-full shadow-lg animate-bounce">
+                       <Award size={24} fill="currentColor" />
+                   </div>
+               )}
+          </div>
+          
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+              {percentage >= 90 ? 'Quiz Mastered!' : percentage >= 70 ? 'Great Job!' : 'Keep Practicing!'}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-6">
+              {percentage >= 90 ? 'You crushed it perfectly.' : 'You are on the right track.'}
+          </p>
+          
+          {/* XP Pill */}
+          <div className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-transform cursor-default">
+              <Star size={16} className="fill-current animate-spin-slow" />
+              <span className="font-bold text-lg">+{displayXp} XP</span>
           </div>
 
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight animate-in slide-up delay-100">{message}</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mb-10 text-center max-w-[250px] animate-in slide-up delay-200">{subMessage}</p>
+      </div>
 
-          <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-8 animate-in slide-up delay-300">
-              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center transition-transform hover:-translate-y-1">
-                  <div className="text-slate-400 dark:text-slate-500 mb-2"><Target size={20} /></div>
-                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">{result.correctAnswers}/{result.totalQuestions}</span>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Score</span>
+      {/* Stats Grid */}
+      <div className="flex-1 overflow-y-auto p-6 animate-in slide-up delay-100">
+          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+              
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 text-blue-500 mb-1">
+                      <Target size={18} />
+                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">Accuracy</span>
+                  </div>
+                  <span className="text-2xl font-black text-slate-800 dark:text-white">{percentage}%</span>
+                  <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className={`h-full ${gradeBg}`} style={{ width: `${percentage}%` }}></div>
+                  </div>
               </div>
-              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center transition-transform hover:-translate-y-1">
-                  <div className="text-slate-400 dark:text-slate-500 mb-2"><Clock size={20} /></div>
-                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">{result.timeTaken}s</span>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Time</span>
+
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 text-purple-500 mb-1">
+                      <Clock size={18} />
+                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">Time</span>
+                  </div>
+                  <span className="text-2xl font-black text-slate-800 dark:text-white">{result.timeTaken}s</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">Speedy!</span>
               </div>
+
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-orange-500 mb-1">
+                        <Flame size={18} />
+                        <span className="text-xs font-bold uppercase tracking-wide opacity-70">Answer Streak</span>
+                    </div>
+                    <TrendingUp size={16} className="text-green-500" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-slate-800 dark:text-white">{result.correctAnswers}</span>
+                      <span className="text-xs font-semibold text-slate-400">Correct Answers</span>
+                  </div>
+              </div>
+
           </div>
       </div>
 
+      {/* Action Footer */}
       <div className="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 space-y-3 z-10 transition-colors">
         <Button 
             fullWidth 
             onClick={onNew} 
-            className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-2xl py-4 shadow-lg shadow-blue-200 dark:shadow-none active:scale-[0.98] transition-transform"
+            className="bg-[#4285F4] hover:bg-[#3367d6] text-white rounded-xl py-3.5 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 active:scale-[0.98] transition-transform text-base"
             icon={<Plus size={20} />}
         >
           New Quiz
@@ -117,7 +166,7 @@ export const ResultView: React.FC<ResultViewProps> = ({ result, onRetry, onNew }
             fullWidth 
             variant="ghost" 
             onClick={onRetry} 
-            className="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl py-3 active:scale-[0.98] transition-transform"
+            className="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl py-3 active:scale-[0.98] transition-transform text-sm"
             icon={<RotateCcw size={18} />}
         >
           Try Again
