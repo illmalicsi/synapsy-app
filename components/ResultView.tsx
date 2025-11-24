@@ -81,84 +81,84 @@ export const ResultView: React.FC<ResultViewProps> = ({ result, onRetry, onNew }
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 relative overflow-hidden transition-colors duration-300">
       
-      {/* Hero Section */}
-      <div className="relative z-10 bg-white dark:bg-slate-800 rounded-b-[3rem] shadow-xl pb-10 pt-8 px-6 text-center border-b border-slate-100 dark:border-slate-700">
+      {/* Hero Section - Compacted */}
+      <div className="relative z-10 bg-white dark:bg-slate-800 rounded-b-[2rem] shadow-xl pb-6 pt-6 px-6 text-center border-b border-slate-100 dark:border-slate-700 shrink-0">
           
-          <div className="inline-block relative mb-4">
-               {/* Grade Circle */}
-               <div className={`w-32 h-32 rounded-full flex items-center justify-center text-6xl font-black border-[8px] border-slate-100 dark:border-slate-700 shadow-inner ${gradeColor}`}>
+          <div className="inline-block relative mb-3">
+               {/* Grade Circle - Smaller */}
+               <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl font-black border-[6px] border-slate-100 dark:border-slate-700 shadow-inner ${gradeColor}`}>
                    {grade}
                </div>
                {percentage >= 100 && (
-                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-white p-2 rounded-full shadow-lg animate-bounce">
-                       <Award size={24} fill="currentColor" />
+                   <div className="absolute -top-1 -right-1 bg-yellow-400 text-white p-1.5 rounded-full shadow-lg animate-bounce">
+                       <Award size={20} fill="currentColor" />
                    </div>
                )}
           </div>
           
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-0.5 tracking-tight">
               {percentage >= 90 ? 'Quiz Mastered!' : percentage >= 70 ? 'Great Job!' : 'Keep Practicing!'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-6">
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-xs mb-4">
               {percentage >= 90 ? 'You crushed it perfectly.' : 'You are on the right track.'}
           </p>
           
-          {/* XP Pill */}
-          <div className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-transform cursor-default">
-              <Star size={16} className="fill-current animate-spin-slow" />
-              <span className="font-bold text-lg">+{displayXp} XP</span>
+          {/* XP Pill - Compact */}
+          <div className="inline-flex items-center gap-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1.5 rounded-full shadow-lg transform hover:scale-105 transition-transform cursor-default">
+              <Star size={14} className="fill-current animate-spin-slow" />
+              <span className="font-bold text-sm">+{displayXp} XP</span>
           </div>
 
       </div>
 
-      {/* Stats Grid */}
-      <div className="flex-1 overflow-y-auto p-6 animate-in slide-up delay-100">
-          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+      {/* Stats Grid - Compacted */}
+      <div className="flex-1 overflow-y-auto p-4 animate-in slide-up delay-100 flex flex-col justify-center">
+          <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto w-full">
               
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 text-blue-500 mb-1">
-                      <Target size={18} />
-                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">Accuracy</span>
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-1.5 text-blue-500 mb-0.5">
+                      <Target size={14} />
+                      <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">Accuracy</span>
                   </div>
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{percentage}%</span>
-                  <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <span className="text-xl font-black text-slate-800 dark:text-white">{percentage}%</span>
+                  <div className="w-full h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div className={`h-full ${gradeBg}`} style={{ width: `${percentage}%` }}></div>
                   </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 text-purple-500 mb-1">
-                      <Clock size={18} />
-                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">Time</span>
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-1.5 text-purple-500 mb-0.5">
+                      <Clock size={14} />
+                      <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">Time</span>
                   </div>
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{result.timeTaken}s</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">Speedy!</span>
+                  <span className="text-xl font-black text-slate-800 dark:text-white">{result.timeTaken}s</span>
+                  <span className="text-[9px] text-slate-400 font-semibold">Speedy!</span>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow col-span-2">
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow col-span-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-orange-500 mb-1">
-                        <Flame size={18} />
-                        <span className="text-xs font-bold uppercase tracking-wide opacity-70">Answer Streak</span>
+                    <div className="flex items-center gap-1.5 text-orange-500 mb-0.5">
+                        <Flame size={14} />
+                        <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">Answer Streak</span>
                     </div>
-                    <TrendingUp size={16} className="text-green-500" />
+                    <TrendingUp size={14} className="text-green-500" />
                   </div>
                   <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-slate-800 dark:text-white">{result.correctAnswers}</span>
-                      <span className="text-xs font-semibold text-slate-400">Correct Answers</span>
+                      <span className="text-xl font-black text-slate-800 dark:text-white">{result.correctAnswers}</span>
+                      <span className="text-[10px] font-semibold text-slate-400">Correct Answers</span>
                   </div>
               </div>
 
           </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 space-y-3 z-10 transition-colors">
+      {/* Action Footer - Compact */}
+      <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 space-y-2 z-10 transition-colors shrink-0">
         <Button 
             fullWidth 
             onClick={onNew} 
-            className="bg-[#4285F4] hover:bg-[#3367d6] text-white rounded-xl py-3.5 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 active:scale-[0.98] transition-transform text-base"
-            icon={<Plus size={20} />}
+            className="bg-[#4285F4] hover:bg-[#3367d6] text-white rounded-xl py-3 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 active:scale-[0.98] transition-transform text-sm font-bold"
+            icon={<Plus size={18} />}
         >
           New Quiz
         </Button>
@@ -166,8 +166,8 @@ export const ResultView: React.FC<ResultViewProps> = ({ result, onRetry, onNew }
             fullWidth 
             variant="ghost" 
             onClick={onRetry} 
-            className="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl py-3 active:scale-[0.98] transition-transform text-sm"
-            icon={<RotateCcw size={18} />}
+            className="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl py-2.5 active:scale-[0.98] transition-transform text-xs font-bold"
+            icon={<RotateCcw size={16} />}
         >
           Try Again
         </Button>
